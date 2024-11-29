@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist -r https://github.com/oudaddayassine31/al_haouz_project.git"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
