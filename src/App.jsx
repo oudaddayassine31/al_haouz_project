@@ -78,13 +78,14 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
+    // Only try to initialize map if mapRef exists and map hasn't been initialized
     if (mapRef.current && !leafletMap.current && window.L) {
       leafletMap.current = window.L.map(mapRef.current).setView([31.2131, -7.9692], 9);
-
+  
       window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
       }).addTo(leafletMap.current);
-
+  
       fetch("./src/assets/data/decoupage_administrative/commune_alhouz.geojson")
         .then((response) => response.json())
         .then((data) => {
@@ -98,14 +99,14 @@ export default function Dashboard() {
               { communes: 0, population: 0, menages: 0 }
             )
           );
-
+  
           const communesInfo = data.features.map(feature => ({
             name: feature.properties.Nom_Commun,
             population: feature.properties.Population,
             menages: feature.properties.Nb_Menages
           }));
           setCommunesData(communesInfo);
-
+  
           window.L.geoJSON(data, {
             style: (feature) => ({
               color: "#2c3e50",
@@ -136,14 +137,15 @@ export default function Dashboard() {
           }).addTo(leafletMap.current);
         });
     }
-
+  
+    // Cleanup function
     return () => {
       if (leafletMap.current) {
         leafletMap.current.remove();
         leafletMap.current = null;
       }
     };
-  }, []);
+  }, [activePage]);
 
   const formatDataForChart = (option) => {
     switch(option) {

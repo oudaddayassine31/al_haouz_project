@@ -50,11 +50,30 @@ const seismeData = {
     { name: "Chichaoua", morts: 202 },
     { name: "Ouarzazate", morts: 38 },
     { name: "Marrakech", morts: 18 }
+  ],
+  impact: {
+    batiments: {
+      detruits: 50000,
+      endommages: 150000
+    },
+    victimes: {
+      morts: 2960,
+      blesses: 6125
+    }
+  },
+  regionsAffectees: [
+    { name: "Al Haouz", morts: 1684 },
+    { name: "Taroudant", morts: 980 },
+    { name: "Chichaoua", morts: 202 },
+    { name: "Ouarzazate", morts: 38 },
+    { name: "Marrakech", morts: 18 }
   ]
 };
 
+
 export default function SeismeDashboard() {
-  const [chartType, setChartType] = useState("bilan");
+  const [chartType, setChartType] = useState("batiments");
+  
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const miLayerRef = useRef(null);
@@ -62,6 +81,74 @@ export default function SeismeDashboard() {
   const controlsRef = useRef({});
   const [showMI, setShowMI] = useState(false);
   const [showPGA, setShowPGA] = useState(false);
+
+  const prepareChartData = () => {
+    switch (chartType) {
+      case "batiments":
+        return [
+          {
+            name: "État des bâtiments",
+            detruits: seismeData.impact.batiments.detruits,
+            endommages: seismeData.impact.batiments.endommages
+          }
+        ];
+      case "victimes":
+        return [
+          {
+            name: "Bilan humain",
+            morts: seismeData.impact.victimes.morts,
+            blesses: seismeData.impact.victimes.blesses
+          }
+        ];
+      case "regions":
+        return seismeData.regionsAffectees;
+      default:
+        return [];
+    }
+  };
+
+  const renderChart = () => {
+    const data = prepareChartData();
+
+    switch (chartType) {
+      case "batiments":
+        return (
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip formatter={(value) => value.toLocaleString()} />
+            <Legend />
+            <Bar dataKey="detruits" fill="#FF5252" name="Bâtiments détruits" />
+            <Bar dataKey="endommages" fill="#FFA726" name="Bâtiments endommagés" />
+          </BarChart>
+        );
+      case "victimes":
+        return (
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip formatter={(value) => value.toLocaleString()} />
+            <Legend />
+            <Bar dataKey="morts" fill="#FF5252" name="Décès" />
+            <Bar dataKey="blesses" fill="#2196F3" name="Blessés" />
+          </BarChart>
+        );
+      case "regions":
+        return (
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip formatter={(value) => value.toLocaleString()} />
+            <Legend />
+            <Bar dataKey="morts" fill="#FF5252" name="Nombre de décès" />
+          </BarChart>
+        );
+      default:
+        return null;
+    }
+  };
+
+
 
   useEffect(() => {
     if (mapRef.current && !mapInstance.current) {
@@ -241,45 +328,27 @@ export default function SeismeDashboard() {
         }
       }
     }, [showPGA]);
+    const getChartTitle = () => {
+      switch (chartType) {
+        case "batiments":
+          return "Impact sur les bâtiments";
+        case "victimes":
+          return "Bilan humain";
+        case "regions":
+          return "Décès par région";
+        default:
+          return "Impact du Séisme";
+      }
+    };
+
+
 
 
 
 
         
       
-  const renderChart = () => {
-    const data = chartType === "bilan" 
-      ? Object.entries(seismeData.bilan).map(([name, value]) => ({ name, value }))
-      : seismeData.regionsAffectees;
 
-    return chartType === "bilan" ? (
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={true}
-          label={({ name, value }) => `${name} (${value.toLocaleString()})`}
-          outerRadius={150}
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(value) => value.toLocaleString()} />
-        <Legend />
-      </PieChart>
-    ) : (
-      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip formatter={(value) => value.toLocaleString()} />
-        <Legend />
-        <Bar dataKey="morts" fill="#FF5252" name="Nombre de victimes" />
-      </BarChart>
-    );
-  };
 
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -344,17 +413,18 @@ export default function SeismeDashboard() {
 
       <Card className="bg-white h-[500px]">
         <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800">Impact du Séisme</h2>
+          <h2 className="text-lg font-semibold text-gray-800">{getChartTitle()}</h2>
           <Menu as="div" className="relative inline-block text-left z-10">
             <Menu.Button className="inline-flex justify-center gap-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700">
-              {chartType === "bilan" ? "Bilan" : "Morts par région"}
+              {getChartTitle()}
               <ChevronDownIcon className="w-5 h-5" />
             </Menu.Button>
             <Menu.Items className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black/5">
               <div className="py-1">
                 {[
-                  { id: "bilan", label: "Bilan" },
-                  { id: "regions", label: "Morts par région" }
+                  { id: "batiments", label: "Impact sur les bâtiments" },
+                  { id: "victimes", label: "Bilan humain" },
+                  { id: "regions", label: "Décès par région" }
                 ].map((option) => (
                   <Menu.Item key={option.id}>
                     {({ active }) => (
