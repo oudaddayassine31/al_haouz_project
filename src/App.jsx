@@ -306,7 +306,7 @@ export default function Dashboard() {
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
           <div className="flex items-center">
-            <img src="src/assets/logo.svg" alt="Logo" className="h-9 w-9 mr-3" />
+          <img src="/al_haouz_project/src/assets/logo.svg" alt="Logo" className="h-9 w-9 mr-3" />
             <h1 className="text-3xl font-bold text-gray-800">Observatoire El Haouz</h1>
           </div>
         </div>
