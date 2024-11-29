@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Card } from "./components/ui/card";
+import ReactDOMServer from 'react-dom/server';
+
+import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Menu } from "@headlessui/react";
@@ -17,6 +20,8 @@ import {
   Cell,
   ReferenceLine,
 } from "recharts";
+
+import SeismeDashboard from "./SeismeDashboard"
 
 const COLORS = [
   "#0088FE",
@@ -37,6 +42,8 @@ export default function Dashboard() {
   const [selectedOption, setSelectedOption] = useState("Taux de pauvreté");
   const [chartData, setChartData] = useState([]);
   const [communesData, setCommunesData] = useState([]);
+  const [activePage, setActivePage] = useState("alhaouz");
+
 
   const povertyData = [
     {"name": "Ait Hkim-Ait Yzid", "poverty": 20},
@@ -291,6 +298,7 @@ export default function Dashboard() {
     }
   };
 
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white border-b shadow-sm">
@@ -303,102 +311,116 @@ export default function Dashboard() {
       </header>
 
       <div className="flex">
-        <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r shadow-sm">
-          <nav className="p-4 space-y-1">
-            <button className="w-full flex items-center px-4 py-3 text-left text-gray-900 rounded-lg hover:bg-gray-100">
-              <span className="ml-3">Al Haouz</span>
+      <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r shadow-sm">
+        <nav className="p-4 space-y-1">
+          {[
+            { id: "alhaouz", label: "Al Haouz" },
+            { id: "seisme", label: "Séisme" },
+            { id: "batiments", label: "Bâtiments" },
+            { id: "satellite", label: "Images Satellite" }
+          ].map((item) => (
+            <button
+              key={item.id}
+              className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
+                ${activePage === item.id 
+                  ? "bg-blue-50 text-blue-700 font-medium" 
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              onClick={() => setActivePage(item.id)}
+            >
+              <span className="ml-3">{item.label}</span>
             </button>
+          ))}
+        </nav>
+      </aside>
 
-            <button className="w-full flex items-center px-4 py-3 text-left text-gray-900 rounded-lg hover:bg-gray-100">
-              <span className="ml-3">Séisme</span>
-            </button>
-            <button className="w-full flex items-center px-4 py-3 text-left text-gray-900 rounded-lg hover:bg-gray-100">
-              <span className="ml-3">Bâtiments</span>
-            </button>
-            <button className="w-full flex items-center px-4 py-3 text-left text-gray-900 rounded-lg hover:bg-gray-100">
-              <span className="ml-3">Images Satellite</span>
-            </button>
-          </nav>
-        </aside>
-
-        <main className="flex-1 p-6">
+      <main className="flex-1 p-6">
+        {activePage === "seisme" ? (
+          <SeismeDashboard />
+        ) : (
+          <div key="alhaouz">
+          
           <div className="grid grid-cols-2 gap-6">
-            <Card className="col-span-2 h-[500px] bg-white">
-              <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Carte Interactive</h2>
-              </div>
-              <div ref={mapRef} className="h-[calc(100%-60px)]" />
-            </Card>
+          <Card className="col-span-2 h-[500px] bg-white">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Carte Interactive</h2>
+            </div>
+            <div ref={mapRef} className="h-[calc(100%-60px)]" />
+          </Card>
 
-            <Card className="bg-white">
-              <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Statistiques</h2>
-              </div>
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Population</div>
-                    <div className="text-2xl font-bold">{stats?.population?.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Communes</div>
-                    <div className="text-2xl font-bold">{stats?.communes}</div>
-                  </div>
-                  <div className="bg-orange-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Ménages</div>
-                    <div className="text-2xl font-bold">{stats?.menages?.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <div className="text-sm text-gray-500">Superficie</div>
-                    <div className="text-2xl font-bold">6 612 km²</div>
-                  </div>
+          <Card className="bg-white">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Statistiques</h2>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Population</div>
+                  <div className="text-2xl font-bold">{stats?.population?.toLocaleString()}</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Communes</div>
+                  <div className="text-2xl font-bold">{stats?.communes}</div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Ménages</div>
+                  <div className="text-2xl font-bold">{stats?.menages?.toLocaleString()}</div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500">Superficie</div>
+                  <div className="text-2xl font-bold">6 612 km²</div>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            <Card className="bg-white h-[500px]">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">DataViz</h2>
-                <Menu as="div" className="relative inline-block text-left z-10">
-                  <div>
-                    <Menu.Button className="inline-flex justify-center gap-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700">
-                      {selectedOption}
-                      <ChevronDownIcon className="w-5 h-5" />
-                    </Menu.Button>
+          <Card className="bg-white h-[500px]">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">DataViz</h2>
+              <Menu as="div" className="relative inline-block text-left z-10">
+                <div>
+                  <Menu.Button className="inline-flex justify-center gap-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700">
+                    {selectedOption}
+                    <ChevronDownIcon className="w-5 h-5" />
+                  </Menu.Button>
+                </div>
+                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+                  <div className="py-1">
+                    {[
+                  
+                    "Taux de pauvreté",
+                    "Matériaux de mur",
+                    "Matériaux de toit",
+                    "Ménages par type",
+                    ].map((option) => (
+                      <Menu.Item key={option}>
+                        {({ active }) => (
+                          <button
+                            className={`block w-full text-left px-4 py-2 text-sm ${
+                              active ? "bg-gray-100 text-gray-900" : "text-gray-700"
+                            }`}
+                            onClick={() => setSelectedOption(option)}
+                          >
+                            {option}
+                          </button>
+                        )}
+                      </Menu.Item>
+                    ))}
                   </div>
-                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                    <div className="py-1">
-                      {[
-                    
-                       "Taux de pauvreté",
-                       "Matériaux de mur",
-                       "Matériaux de toit",
-                       "Ménages par type",
-                      ].map((option) => (
-                        <Menu.Item key={option}>
-                          {({ active }) => (
-                            <button
-                              className={`block w-full text-left px-4 py-2 text-sm ${
-                                active ? "bg-gray-100 text-gray-900" : "text-gray-700"
-                              }`}
-                              onClick={() => setSelectedOption(option)}
-                            >
-                              {option}
-                            </button>
-                          )}
-                        </Menu.Item>
-                      ))}
-                    </div>
-                  </Menu.Items>
-                </Menu>
-              </div>
-              <div className="p-4 h-[calc(100%-80px)]">
-                {renderChart()}
-              </div>
-            </Card>
+                </Menu.Items>
+              </Menu>
+            </div>
+            <div className="p-4 h-[calc(100%-80px)]">
+              {renderChart()}
+            </div>
+          </Card>
           </div>
-        </main>
+          </div>
+        )}
+      </main>
       </div>
     </div>
   );
 }
+
+
