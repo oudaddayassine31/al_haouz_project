@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import { Card } from "./components/ui/card";
 import ReactDOMServer from 'react-dom/server';
-
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Switch, Label } from './components/ToggleSwitch';
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Menu } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import {
@@ -23,6 +25,45 @@ import {
 
 import SeismeDashboard from "./SeismeDashboard"
 
+
+const communeCoordinates = {
+  'Abadou': [-7.308, 31.588],
+  'Ait Ourir': [-7.672, 31.561],
+  'Ait Sidi Daoud': [-7.67, 31.618],
+  'Amghras': [-8.177, 31.217],
+  'Amizmiz': [-8.248, 31.219],
+  'Anougal': [-8.276, 31.108],
+  'Asni': [-7.92, 31.175],
+  'Azgour': [-8.359, 31.13],
+  'Dar Jamaa': [-8.386, 31.252],
+  'Ghmate': [-7.79, 31.419],
+  'Ighil': [-8.359, 30.999],
+  'Iguerferouane': [-7.677, 31.399],
+  'Ijoukak': [-8.058, 30.994],
+  'Imgdal': [-8.13, 31.103],
+  'Lalla Takarkoust': [-8.131, 31.326],
+  'Moulay Brahim': [-8.015, 31.319],
+  'Oukaimden': [-7.831, 31.219],
+  'Oulad Mtaa': [-8.266, 31.326],
+  'Ouazguita': [-8.089, 31.259],
+  'Ourika': [-7.806, 31.343],
+  'Ouirgane': [-8.03, 31.16],
+  'Sidi Abdallah Ghiat': [-7.851, 31.522],
+  'Sidi Badhaj': [-8.204, 31.331],
+  'Sti Fadma': [-7.709, 31.242],
+  'Tahannaout': [-7.946, 31.359],
+  'Talat N Yaaqoub': [-8.26, 30.955],
+  'Tamaguert': [-7.546, 31.547],
+  'Tamazouzte': [-7.786, 31.489],
+  'Tameslohte': [-8.066, 31.46],
+  'Tazart': [-7.394, 31.575],
+  'Tidili Mesfioua': [-7.619, 31.477],
+  'Tighedouine': [-7.533, 31.355],
+  'Tizguine': [-8.318, 31.26],
+  'Touama': [-7.483, 31.56],
+  'Zerkten': [-7.352, 31.401]
+};
+
 const COLORS = [
   "#0088FE",
   "#00C49F",
@@ -33,16 +74,42 @@ const COLORS = [
   "#ffc658",
 ];
 
+
 export default function Dashboard() {
+  // All useState hooks should be declared first
   const [activeView, setActiveView] = useState("overview");
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [stats, setStats] = useState(null);
-  const mapRef = useRef(null);
-  const leafletMap = useRef(null);
   const [selectedOption, setSelectedOption] = useState("Taux de pauvreté");
   const [chartData, setChartData] = useState([]);
   const [communesData, setCommunesData] = useState([]);
   const [activePage, setActivePage] = useState("alhaouz");
+  const [mapLayers, setMapLayers] = useState({
+    communes: true,
+    buildings: false
+  });
+  const [selectedBuildingCommune, setSelectedBuildingCommune] = useState(null);
+  const [overlays, setOverlays] = useState({
+    stats: false,
+    charts: false
+  });
+
+  // All useRef hooks
+  const mapRef = useRef(null);
+  const map = useRef(null);
+
+  const BUILDING_CLASSES = {
+    area: [
+      { max: 50, color: '#FFEB3B', label: 'Très petit' },
+      { max: 100, color: '#FFA726', label: 'Petit' },
+      { max: 200, color: '#EF5350', label: 'Moyen' },
+      { max: Infinity, color: '#212121', label: 'Grand' }
+    ]
+  };
+  
+  // Add these new state variables alongside your existing on
+
+
 
 
   const povertyData = [
@@ -78,74 +145,238 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-    // Only try to initialize map if mapRef exists and map hasn't been initialized
-    if (mapRef.current && !leafletMap.current && window.L) {
-      leafletMap.current = window.L.map(mapRef.current).setView([31.2131, -7.9692], 9);
+    if (!map.current && mapRef.current) {
+      mapboxgl.accessToken = 'pk.eyJ1IjoibW9oc3NpbmVib3VoZGEiLCJhIjoiY20zdm13bGpzMHpxYzJsc2ZtZDNwMGVveSJ9.2otT87Si6Z7EB8P2t_rOIg';
+      
+      map.current = new mapboxgl.Map({
+        container: mapRef.current,
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [-8.1938, 30.9900],
+        zoom: 9,
+        pitch: 45
+      });
   
-      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-      }).addTo(leafletMap.current);
+      map.current.addControl(new mapboxgl.NavigationControl());
   
-      fetch("./src/assets/data/decoupage_administrative/commune_alhouz.geojson")
-        .then((response) => response.json())
-        .then((data) => {
-          setStats(
-            data.features.reduce(
-              (acc, feature) => ({
-                communes: acc.communes + 1,
-                population: acc.population + feature.properties.Population,
-                menages: acc.menages + feature.properties.Nb_Menages,
-              }),
-              { communes: 0, population: 0, menages: 0 }
-            )
-          );
-  
-          const communesInfo = data.features.map(feature => ({
-            name: feature.properties.Nom_Commun,
-            population: feature.properties.Population,
-            menages: feature.properties.Nb_Menages
-          }));
-          setCommunesData(communesInfo);
-  
-          window.L.geoJSON(data, {
-            style: (feature) => ({
-              color: "#2c3e50",
-              weight: 2,
-              fillOpacity: 0.8,
-              fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-            }),
-            onEachFeature: (feature, layer) => {
-              layer.bindPopup(
-                `<strong>Commune:</strong> ${feature.properties.Nom_Commun}<br />
-                 <strong>Population:</strong> ${feature.properties.Population}<br />
-                 <strong>Ménages:</strong> ${feature.properties.Nb_Menages}`
-              );
-              layer.on("mouseover", () => {
-                layer.setStyle({ fillOpacity: 0.5 });
-              });
-              layer.on("mouseout", () => {
-                layer.setStyle({ fillOpacity: 0.8 });
-              });
-              layer.on("click", () => {
-                setSelectedFeature({
-                  name: feature.properties.Nom_Commun,
-                  population: feature.properties.Population,
-                  menages: feature.properties.Nb_Menages,
-                });
-              });
-            },
-          }).addTo(leafletMap.current);
-        });
+      map.current.on('load', () => {
+        loadCommuneBoundaries();
+      });
     }
   
-    // Cleanup function
     return () => {
-      if (leafletMap.current) {
-        leafletMap.current.remove();
-        leafletMap.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
       }
     };
   }, [activePage]);
+
+  const loadCommuneBoundaries = async () => {
+    try {
+      const response = await fetch("./src/assets/data/decoupage_administrative/commune_alhouz.geojson");
+      const data = await response.json();
+  
+      // Keep your existing stats calculation
+      setStats(data.features.reduce((acc, feature) => ({
+        communes: acc.communes + 1,
+        population: acc.population + feature.properties.Population,
+        menages: acc.menages + feature.properties.Nb_Menages,
+      }), { communes: 0, population: 0, menages: 0 }));
+  
+      if (!map.current.getSource('communes')) {
+        map.current.addSource('communes', {
+          type: 'geojson',
+          data: data
+        });
+  
+        map.current.addLayer({
+          'id': 'communes-fill',
+          'type': 'fill',
+          'source': 'communes',
+          'paint': {
+            'fill-color': [
+              'interpolate',
+              ['linear'],
+              ['get', 'Population'],
+              0, '#f1eef6',
+              5000, '#bdc9e1',
+              10000, '#74a9cf',
+              20000, '#0570b0'
+            ],
+            'fill-opacity': 0.6
+          }
+        });
+  
+        map.current.addLayer({
+          'id': 'communes-line',
+          'type': 'line',
+          'source': 'communes',
+          'paint': {
+            'line-color': '#000',
+            'line-width': 1
+          }
+        });
+  
+        map.current.on('click', 'communes-fill', (e) => {
+          if (!e.features.length) return;
+          
+          const feature = e.features[0];
+          new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(`
+              <div class="p-2">
+                <h3 class="font-bold">${feature.properties.Nom_Commun}</h3>
+                <p>Population: ${feature.properties.Population.toLocaleString()}</p>
+                <p>Ménages: ${feature.properties.Nb_Menages.toLocaleString()}</p>
+              </div>
+            `)
+            .addTo(map.current);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading communes:', error);
+    }
+  };
+  
+  const loadBuildings = async (communeName) => {
+    try {
+      if (!communeName) {
+        alert('Veuillez sélectionner une commune d\'abord');
+        return;
+      }
+      if (map.current.getLayer('buildings-3d')) {
+        map.current.removeLayer('buildings-3d');
+      }
+      if (map.current.getSource('buildings')) {
+        map.current.removeSource('buildings');
+      }
+  
+      const response = await fetch(`/src/assets/data/buildings/before/${communeName}.geojson`);
+      const data = await response.json();
+  
+      map.current.addSource('buildings', {
+        type: 'geojson',
+        data: data
+      });
+  
+      map.current.addLayer({
+        'id': 'buildings-3d',
+        'type': 'fill-extrusion',
+        'source': 'buildings',
+        'paint': {
+          'fill-extrusion-color': [
+            'step',
+            ['get', 'area_in_meters'],
+            BUILDING_CLASSES.area[0].color,
+            50, BUILDING_CLASSES.area[1].color,
+            100, BUILDING_CLASSES.area[2].color,
+            200, BUILDING_CLASSES.area[3].color
+          ],
+          'fill-extrusion-height': 3,
+          'fill-extrusion-opacity': 0.8
+        },
+        'layout': {
+          'visibility': 'visible'
+        }
+      });
+  
+      // Automatically enable building layer when loading buildings
+      setMapLayers(prev => ({
+        ...prev,
+        buildings: true
+      }));
+  
+      // Fly to the buildings
+      const communeCoords = communeCoordinates[communeName];
+      if (communeCoords) {
+        map.current.flyTo({
+          center: communeCoords,
+          zoom: 15,
+          duration: 2000
+        });
+      }
+  
+      // Add building click handlers...
+    } catch (error) {
+      console.error('Error loading buildings:', error);
+    }
+  };
+
+  const toggleLayer = (layerName) => {
+    if (layerName === 'buildings') {
+      if (!selectedBuildingCommune) {
+        alert('Veuillez sélectionner une commune d\'abord');
+        return;
+      }
+  
+      setMapLayers(prev => {
+        const newState = { ...prev, buildings: !prev.buildings };
+  
+        if (map.current) {
+          if (newState.buildings) {
+            // Load building data when turning on the buildings layer
+            loadBuildings(selectedBuildingCommune);
+          } else {
+            // If turning off buildings, reset zoom and selected building commune
+            resetZoom();
+            setSelectedBuildingCommune(null);
+          }
+  
+          if (map.current.getLayer('buildings-3d')) {
+            map.current.setLayoutProperty(
+              'buildings-3d',
+              'visibility',
+              newState.buildings ? 'visible' : 'none'
+            );
+          }
+        }
+  
+        return newState;
+      });
+    } else {
+      setMapLayers(prev => {
+        const newState = { ...prev, [layerName]: !prev[layerName] };
+  
+        if (map.current) {
+          ['communes-fill', 'communes-line'].forEach(layer => {
+            if (map.current.getLayer(layer)) {
+              map.current.setLayoutProperty(
+                layer,
+                'visibility',
+                newState[layerName] ? 'visible' : 'none'
+              );
+            }
+          });
+  
+          // Reset selected building commune when communes layer is turned off
+          if (!newState.communes) {
+            setSelectedBuildingCommune(null);
+          }
+        }
+  
+        return newState;
+      });
+    }
+  };
+  const toggleOverlay = (overlayName) => {
+    setOverlays(prev => ({
+      stats: overlayName === 'stats' ? !prev.stats : false,
+      charts: overlayName === 'charts' ? !prev.charts : false
+    }));
+  };
+
+  const resetZoom = () => {
+    map.current.flyTo({
+      center: [-8.1938, 30.9900],
+      zoom: 9,
+      pitch: 45,
+      duration: 2000
+    });
+  };
+
+
+
+  
 
   const formatDataForChart = (option) => {
     switch(option) {
@@ -311,118 +542,236 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-
+  
       <div className="flex">
-      <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r shadow-sm">
-        <nav className="p-4 space-y-1">
-          {[
-            { id: "alhaouz", label: "Al Haouz" },
-            { id: "seisme", label: "Séisme" },
-            { id: "batiments", label: "Bâtiments" },
-            { id: "satellite", label: "Images Satellite" }
-          ].map((item) => (
-            <button
-              key={item.id}
-              className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
-                ${activePage === item.id 
-                  ? "bg-blue-50 text-blue-700 font-medium" 
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-              onClick={() => setActivePage(item.id)}
-            >
-              <span className="ml-3">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 p-6">
-        {activePage === "seisme" ? (
-          <SeismeDashboard />
-        ) : (
-          <div key="alhaouz">
-          
-          <div className="grid grid-cols-2 gap-6">
-          <Card className="col-span-2 h-[500px] bg-white">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Carte Interactive</h2>
-            </div>
-            <div ref={mapRef} className="h-[calc(100%-60px)]" />
-          </Card>
-
-          <Card className="bg-white">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Statistiques</h2>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500">Population</div>
-                  <div className="text-2xl font-bold">{stats?.population?.toLocaleString()}</div>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500">Communes</div>
-                  <div className="text-2xl font-bold">{stats?.communes}</div>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500">Ménages</div>
-                  <div className="text-2xl font-bold">{stats?.menages?.toLocaleString()}</div>
-                </div>
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500">Superficie</div>
-                  <div className="text-2xl font-bold">6 612 km²</div>
-                </div>
+        <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r shadow-sm">
+          <nav className="p-4 space-y-1">
+            {[
+              { id: "alhaouz", label: "Al Haouz" },
+              { id: "seisme", label: "Séisme" },
+              { id: "satellite", label: "Images Satellite" }
+            ].map((item) => (
+              <button
+                key={item.id}
+                className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
+                  ${activePage === item.id 
+                    ? "bg-blue-50 text-blue-700 font-medium" 
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                onClick={() => setActivePage(item.id)}
+              >
+                <span className="ml-3">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+  
+        <main className="flex-1 p-6">
+          {activePage === "seisme" ? (
+            <SeismeDashboard />
+          ) : (
+            <div key="alhaouz">
+              <div className="grid grid-cols-1 gap-6">
+                <Card className="h-[calc(100vh-8rem)] bg-white relative">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">Carte Interactive</h2>
+                    <button
+                      onClick={resetZoom}
+                      className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md shadow-sm transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-medium text-sm"
+                    >
+                      Réinitialiser le zoom
+                    </button>
+                  </div>
+  
+                  {/* Map Controls */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <Card className="w-64 p-4 space-y-4">
+                      {/* Layer Controls */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-gray-700">Couches</h3>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="communes-toggle">Communes</Label>
+                          <Switch
+                            id="communes-toggle"
+                            checked={mapLayers.communes}
+                            onCheckedChange={(checked) => toggleLayer('communes')}
+                          />
+                        </div>
+                      </div>
+  
+                      {/* Commune Selection */}
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-700">Sélection de commune</h3>
+                        <Menu as="div" className="relative">
+                          <Menu.Button className="w-full inline-flex justify-between items-center px-3 py-2 text-sm bg-gray-50 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
+                            <span className="truncate">
+                              {selectedBuildingCommune || 'Choisir une commune'}
+                            </span>
+                            <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                          </Menu.Button>
+                          <Menu.Items className="absolute right-0 mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                            {Object.keys(communeCoordinates).map((commune) => (
+                              <Menu.Item key={commune}>
+                                {({ active }) => (
+                                  <button
+                                    className={`
+                                      w-full px-4 py-2 text-sm text-left
+                                      ${active ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}
+                                      hover:bg-blue-50 hover:text-blue-700 transition-colors
+                                    `}
+                                    onClick={() => {
+                                      setSelectedBuildingCommune(commune);
+                                      loadBuildings(commune);
+                                    }}
+                                  >
+                                    {commune}
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            ))}
+                          </Menu.Items>
+                        </Menu>
+                      </div>
+  
+                      {/* Building Control */}
+                      {selectedBuildingCommune && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="buildings-toggle">Bâtiments</Label>
+                            <Switch
+                              id="buildings-toggle"
+                              checked={mapLayers.buildings}
+                              onCheckedChange={(checked) => toggleLayer('buildings')}
+                            />
+                          </div>
+                        </div>
+                      )}
+  
+                      {/* Building Classification */}
+                      {mapLayers.buildings && selectedBuildingCommune && (
+                        <div className="space-y-2 pt-2 border-t">
+                          <h3 className="text-sm font-semibold text-gray-700">Classification par surface</h3>
+                          <div className="grid grid-cols-1 gap-2">
+                            {BUILDING_CLASSES.area.map((cls, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <div 
+                                  className="w-4 h-4 rounded shadow-sm"
+                                  style={{ backgroundColor: cls.color }}
+                                />
+                                <span className="text-sm text-gray-600">
+                                  {i === BUILDING_CLASSES.area.length - 1 
+                                    ? `${cls.label} (>${BUILDING_CLASSES.area[i-1].max}m²)`
+                                    : `${cls.label} (${i === 0 ? '0' : BUILDING_CLASSES.area[i-1].max}-${cls.max}m²)`
+                                  }
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+  
+                      {/* Overlays Control */}
+                      <div className="space-y-3 pt-2 border-t">
+                        <h3 className="text-sm font-semibold text-gray-700">Affichage</h3>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="stats-toggle">Statistiques</Label>
+                          <Switch
+                            id="stats-toggle"
+                            checked={overlays.stats}
+                            onCheckedChange={() => toggleOverlay('stats')}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="charts-toggle">Graphiques</Label>
+                          <Switch
+                            id="charts-toggle"
+                            checked={overlays.charts}
+                            onCheckedChange={() => toggleOverlay('charts')}
+                          />
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+  
+                  {/* Stats Overlay */}
+                  {overlays.stats && (
+                    <div className="absolute bottom-4 left-4 z-10 w-96">
+                      <Card className="bg-white/90 backdrop-blur">
+                        <div className="p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-blue-50/50 p-4 rounded-lg">
+                              <div className="text-sm text-gray-500">Population</div>
+                              <div className="text-2xl font-bold">{stats?.population?.toLocaleString()}</div>
+                            </div>
+                            <div className="bg-green-50/50 p-4 rounded-lg">
+                              <div className="text-sm text-gray-500">Communes</div>
+                              <div className="text-2xl font-bold">{stats?.communes}</div>
+                            </div>
+                            <div className="bg-orange-50/50 p-4 rounded-lg">
+                              <div className="text-sm text-gray-500">Ménages</div>
+                              <div className="text-2xl font-bold">{stats?.menages?.toLocaleString()}</div>
+                            </div>
+                            <div className="bg-red-50/50 p-4 rounded-lg">
+                              <div className="text-sm text-gray-500">Superficie</div>
+                              <div className="text-2xl font-bold">6 612 km²</div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+  
+                  {/* Charts Overlay */}
+                  {overlays.charts && (
+                    <div className="absolute left-4 top-16 z-10 w-[600px]">
+                      <Card className="bg-white/90 backdrop-blur">
+                        <div className="p-4 border-b flex justify-between items-center">
+                          <h2 className="text-lg font-semibold">DataViz</h2>
+                          <Menu as="div" className="relative inline-block text-left">
+                            <Menu.Button className="inline-flex justify-center gap-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700">
+                              {selectedOption}
+                              <ChevronDownIcon className="w-5 h-5" />
+                            </Menu.Button>
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+                              <div className="py-1">
+                                {[
+                                  "Taux de pauvreté",
+                                  "Matériaux de mur",
+                                  "Matériaux de toit",
+                                  "Ménages par type",
+                                ].map((option) => (
+                                  <Menu.Item key={option}>
+                                    {({ active }) => (
+                                      <button
+                                        className={`block w-full text-left px-4 py-2 text-sm ${
+                                          active ? "bg-gray-100 text-gray-900" : "text-gray-700"
+                                        }`}
+                                        onClick={() => setSelectedOption(option)}
+                                      >
+                                        {option}
+                                      </button>
+                                    )}
+                                  </Menu.Item>
+                                ))}
+                              </div>
+                            </Menu.Items>
+                          </Menu>
+                        </div>
+                        <div className="p-4">
+                          {renderChart()}
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+  
+                  <div ref={mapRef} className="h-[calc(100%-60px)]" />
+                </Card>
               </div>
             </div>
-          </Card>
-
-          <Card className="bg-white h-[500px]">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-lg font-semibold">DataViz</h2>
-              <Menu as="div" className="relative inline-block text-left z-10">
-                <div>
-                  <Menu.Button className="inline-flex justify-center gap-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700">
-                    {selectedOption}
-                    <ChevronDownIcon className="w-5 h-5" />
-                  </Menu.Button>
-                </div>
-                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                  <div className="py-1">
-                    {[
-                  
-                    "Taux de pauvreté",
-                    "Matériaux de mur",
-                    "Matériaux de toit",
-                    "Ménages par type",
-                    ].map((option) => (
-                      <Menu.Item key={option}>
-                        {({ active }) => (
-                          <button
-                            className={`block w-full text-left px-4 py-2 text-sm ${
-                              active ? "bg-gray-100 text-gray-900" : "text-gray-700"
-                            }`}
-                            onClick={() => setSelectedOption(option)}
-                          >
-                            {option}
-                          </button>
-                        )}
-                      </Menu.Item>
-                    ))}
-                  </div>
-                </Menu.Items>
-              </Menu>
-            </div>
-            <div className="p-4 h-[calc(100%-80px)]">
-              {renderChart()}
-            </div>
-          </Card>
-          </div>
-          </div>
-        )}
-      </main>
+          )}
+        </main>
       </div>
     </div>
-  );
-}
+  )};
 
 
