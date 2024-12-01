@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-
 import { Card } from "./components/ui/card";
 import ReactDOMServer from 'react-dom/server';
 import mapboxgl from 'mapbox-gl';
@@ -152,7 +151,7 @@ export default function Dashboard() {
         container: mapRef.current,
         style: 'mapbox://styles/mapbox/satellite-v9',
         center: [-8.1938, 30.9900],
-        zoom: 9,
+        zoom: 7,
         pitch: 45
       });
   
@@ -238,21 +237,72 @@ export default function Dashboard() {
     }
   };
   
+  const buildingFileNames = {
+    'Abadou': 'Abadou.geojson',
+    'Ait Ourir': 'Ait Ourir.geojson',
+    'Ait Sidi Daoud': 'Ait Sidi Daoud.geojson',
+    'Amghras': 'Amghras.geojson',
+    'Amizmiz': 'Amizmiz.geojson',
+    'Anougal': 'Anougal.geojson',
+    'Asni': 'Asni.geojson',
+    'Azgour': 'Azgour.geojson',
+    'Dar Jamaa': 'Dar Jamaa.geojson',
+    'Ghmate': 'Ghmate.geojson',
+    'Ighil': 'Ighil.geojson',
+    'Iguerferouane': 'Iguerferouane.geojson',
+    'Ijoukak': 'Ijoukak.geojson',
+    'Imgdal': 'Imgdal.geojson',
+    'Lalla Takarkoust': 'Lalla Takarkoust.geojson',
+    'Moulay Brahim': 'Moulay Brahim.geojson',
+    'Oukaimden': 'Oukaimden.geojson',
+    'Oulad Mtaa': 'Oulad Mtaa.geojson',
+    'Ouazguita': 'Ouazguita.geojson',
+    'Ourika': 'Ourika.geojson',
+    'Ouirgane': 'Ouirgane.geojson',
+    'Sidi Abdallah Ghiat': 'Sidi Abdallah Ghiat.geojson',
+    'Sidi Badhaj': 'Sidi Badhaj.geojson',
+    'Sti Fadma': 'Sti Fadma.geojson',
+    'Tahannaout': 'Tahannaout.geojson',
+    'Talat N Yaaqoub': 'Talat N Yaaqoub.geojson',
+    'Tamaguert': 'Tamaguert.geojson',
+    'Tamazouzte': 'Tamazouzte.geojson',
+    'Tameslohte': 'Tameslohte.geojson',
+    'Tazart': 'Tazart.geojson',
+    'Tidili Mesfioua': 'Tidili Mesfioua.geojson',
+    'Tighedouine': 'Tighedouine.geojson',
+    'Tizguine': 'Tizguine.geojson',
+    'Touama': 'Touama.geojson',
+    'Zerkten': 'Zerkten.geojson'
+  };
+  
   const loadBuildings = async (communeName) => {
     try {
       if (!communeName) {
         alert('Veuillez sélectionner une commune d\'abord');
         return;
       }
+  
+      // Utiliser le mapping pour récupérer le nom de fichier correct
+      const buildingFileName = buildingFileNames[communeName];
+      if (!buildingFileName) {
+        console.error(`Aucun fichier de données de bâtiments trouvé pour la commune : ${communeName}`);
+        return;
+      }
+  
+      const response = await fetch(`./src/assets/data/buildings/before/${buildingFileName}`);
+      if (!response.ok) {
+        console.error(`Erreur de chargement des bâtiments pour ${communeName} : ${response.status} - ${response.statusText}`);
+        return;
+      }
+  
+      const data = await response.json();
+  
       if (map.current.getLayer('buildings-3d')) {
         map.current.removeLayer('buildings-3d');
       }
       if (map.current.getSource('buildings')) {
         map.current.removeSource('buildings');
       }
-  
-      const response = await fetch(`/src/assets/data/buildings/before/${communeName}.geojson`);
-      const data = await response.json();
   
       map.current.addSource('buildings', {
         type: 'geojson',
@@ -295,8 +345,6 @@ export default function Dashboard() {
           duration: 2000
         });
       }
-  
-      // Add building click handlers...
     } catch (error) {
       console.error('Error loading buildings:', error);
     }
@@ -537,7 +585,7 @@ export default function Dashboard() {
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
           <div className="flex items-center">
-            <img src="src/assets/logo.svg" alt="Logo" className="h-9 w-9 mr-3" />
+          <img src="/al_haouz_project/src/assets/logo.svg" alt="Logo" className="h-9 w-9 mr-3" />
             <h1 className="text-3xl font-bold text-gray-800">Observatoire El Haouz</h1>
           </div>
         </div>
@@ -773,5 +821,4 @@ export default function Dashboard() {
       </div>
     </div>
   )};
-
 
