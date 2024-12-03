@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Adebdi",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Site_ID": 0, "AgencyID": 0, "SiteName": null, "Notes": null, "Area_m2": 186.93052921399999, "Area_ha": 0.0, "EventCode": "EQ20230909MAR", "SHAPE_Leng": 0.81704140244000001, "SHAPE_Area": 0.03406534249, "Sensor_ID": "Pleiades", "StaffID": "JT" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -8.40684344899995, 30.764799635000088 ], [ -8.441635417999919, 30.624255029000039 ], [ -8.555226008999909, 30.643959520000067 ], [ -8.51898820699995, 30.798505773000045 ], [ -8.487998923999953, 30.930254171000058 ], [ -8.372090157999935, 30.90475424300007 ], [ -8.40684344899995, 30.764799635000088 ] ] ] ] } }
+]
+}

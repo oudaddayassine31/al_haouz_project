@@ -21,8 +21,10 @@ import {
   Cell,
   ReferenceLine,
 } from "recharts";
+import { Home, Activity, Image, GitCompare ,BrickWall  } from 'lucide-react';
 
-import SeismeDashboard from "./SeismeDashboard"
+import SeismeDashboard from "./SeismeDashboard";
+import AnalyseDeDegat from './analyseDeDegat';
 
 
 const communeCoordinates = {
@@ -96,6 +98,19 @@ export default function Dashboard() {
   // All useRef hooks
   const mapRef = useRef(null);
   const map = useRef(null);
+
+  const [previousPage, setPreviousPage] = useState("alhaouz");
+  
+  const handlePageChange = (pageId) => {
+    if (pageId === "satellite-compare") {
+      setPreviousPage(activePage); // Store current page before navigation
+      window.open("https://oudaddayassine31.github.io/SatelliteCompare/", "_blank");
+    } else {
+      setActivePage(pageId);
+    }
+  };
+
+
 
   const BUILDING_CLASSES = {
     area: [
@@ -581,42 +596,133 @@ export default function Dashboard() {
 
   
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
-          <div className="flex items-center">
-          <img src="/al_haouz_project/src/assets/logo.svg" alt="Logo" className="h-9 w-9 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-800">Observatoire El Haouz</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-20 flex items-center justify-between">
+            {/* Left side - Logo and Title */}
+            <div className="flex items-center">
+              <div className="bg-blue-600 p-2 rounded-lg">
+                <img src="./src/morocco.svg" alt="Logo" className="h-8 w-8" />
+              </div>
+              <div className="ml-3">
+                <h1 className="text-2xl font-bold text-blue-600">
+                  Observatoire sismique Al Haouz
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Plateforme de surveillance du séisme du 8 septembre 2023 dans la province d'Al Haouz, Maroc
+                </p>
+              </div>
+            </div>
+
+            {/* Right side - Navigation */}
+            <nav className="flex items-center space-x-6">
+              <a 
+                href="https://github.com/oudaddayassine31/al_haouz_project" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+              >
+                Code source
+              </a>
+              <a 
+                href="https://www.linkedin.com/in/yassine-oudadda-4995581b8/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+              >
+                Contact
+              </a>
+            </nav>
           </div>
         </div>
       </header>
-  
+
       <div className="flex">
-        <aside className="w-64 bg-white h-[calc(100vh-4rem)] border-r shadow-sm">
-          <nav className="p-4 space-y-1">
-            {[
-              { id: "alhaouz", label: "Al Haouz" },
-              { id: "seisme", label: "Séisme" },
-              { id: "satellite", label: "Images Satellite" }
-            ].map((item) => (
-              <button
-                key={item.id}
-                className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
-                  ${activePage === item.id 
-                    ? "bg-blue-50 text-blue-700 font-medium" 
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                onClick={() => setActivePage(item.id)}
-              >
-                <span className="ml-3">{item.label}</span>
-              </button>
-            ))}
-          </nav>
+        <aside className="w-72 bg-white border-r shadow-sm h-[calc(100vh-5rem)] flex flex-col">
+          <div className="p-6 flex-1">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+              Navigation
+            </h2>
+            <nav className="space-y-2">
+              {[
+                { id: "alhaouz", label: "Al Haouz", icon: Home },
+                { id: "seisme", label: "Séisme", icon: Activity },
+                { id: "satellite", label: "Analyse Des Dégâts", icon: BrickWall },
+                { id: "satellite-compare", label: "Comparaison Satellite", icon: Image }
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handlePageChange(item.id)}
+                  className={`
+                    w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200
+                    ${activePage === item.id 
+                      ? "bg-blue-50 text-blue-700 font-medium shadow-sm" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }
+                  `}
+                >
+                  <item.icon className={`h-5 w-5 mr-3 ${
+                    activePage === item.id ? "text-blue-600" : "text-gray-400"
+                  }`} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          <div className="p-6 border-t">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+              Notre Équipe
+            </h2>
+            <div className="space-y-4">
+              {[
+                {
+                  name: "OUDADDA Yassine",
+           
+                  placeholder: "public/WhatsApp Image 2024-12-03 at 7.17.28 PM.jpeg"
+
+                },
+                {
+                  name: "BOUHDA Mohssine",
+           
+                  placeholder: "/api/placeholder/60/60"
+                },
+                {
+                  name: "SALAH Aissam",
+           
+                  placeholder: "/api/placeholder/60/60"
+                }
+              ].map((member) => (
+                <div key={member.name} className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={member.placeholder}
+                      alt={member.name}
+                      className="w-10 h-10 rounded-full bg-gray-200"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {member.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {member.role}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </aside>
   
         <main className="flex-1 p-6">
           {activePage === "seisme" ? (
             <SeismeDashboard />
+          ) : activePage === "satellite" ? (
+            <AnalyseDeDegat />
+          ) : activePage === "satellite-compare" ? (
+            <SatelliteCompare />
           ) : (
             <div key="alhaouz">
               <div className="grid grid-cols-1 gap-6">
@@ -649,7 +755,7 @@ export default function Dashboard() {
   
                       {/* Commune Selection */}
                       <div className="space-y-2">
-                        <h3 className="text-sm font-semibold text-gray-700">Sélection de commune</h3>
+                        <h3 className="text-sm font-semibold text-gray-700">Sélectionnez une commune </h3>
                         <Menu as="div" className="relative">
                           <Menu.Button className="w-full inline-flex justify-between items-center px-3 py-2 text-sm bg-gray-50 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
                             <span className="truncate">

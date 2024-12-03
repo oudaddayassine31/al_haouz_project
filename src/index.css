@@ -54,6 +54,7 @@
   clear: both;
   padding: 3px 0;
 }
+
 .legend svg {
   vertical-align: middle;
   margin-right: 5px;
@@ -61,4 +62,62 @@
 
 .legend span {
   vertical-align: middle;
+}
+
+/* Mapbox Compare Styles */
+.mapboxgl-compare {
+  background-color: #fff;
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  z-index: 1;
+}
+
+.mapboxgl-compare .compare-swiper {
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  left: -30px;
+  margin: -30px 1px 0;
+  color: #222;
+  cursor: ew-resize;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='11 17 6 12 11 7'%3E%3C/polyline%3E%3Cpolyline points='18 17 13 12 18 7'%3E%3C/polyline%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 30px;
+}
+
+.mapboxgl-compare .compare-swiper:hover {
+  background-color: #f8f8f8;
+}
+
+/* Container styles */
+#comparison-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.mapboxgl-map {
+  width: 100%;
+  height: 100%;
+}
+
+.mapboxgl-popup {
+  max-width: 400px;
+}
+
+.mapboxgl-popup-content {
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.mapboxgl-ctrl-top-right {
+  top: 1rem;
+  right: 1rem;
 }

@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "aitOthmane",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Site_ID": 30, "AgencyID": 0, "SiteName": null, "Notes": null, "Area_m2": 172800546.88800001, "Area_ha": 17280.054688799999, "EventCode": "EQ20230909MAR", "SHAPE_Leng": 0.56617407435, "SHAPE_Area": 0.01634050358 }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -8.297908547999953, 31.187571632000072 ], [ -8.341953878999959, 31.032253885000046 ], [ -8.448589943999934, 31.053117463000035 ], [ -8.404465865999953, 31.100302262000071 ], [ -8.422455826999908, 31.170277055000042 ], [ -8.411499138999943, 31.211912472000051 ], [ -8.297908547999953, 31.187571632000072 ] ] ] ] } }
+]
+}
