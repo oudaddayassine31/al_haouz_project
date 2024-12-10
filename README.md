@@ -1,4 +1,5 @@
 🗺️ Observatoire Sismique Al Haouz
+
 📝 Description
 Une plateforme interactive de surveillance et d'analyse du séisme du 8 septembre 2023 dans la province d'Al Haouz, Maroc. Ce projet combine la visualisation cartographique avancée avec l'analyse des données sismiques pour fournir une compréhension approfondie de l'impact du séisme.
 ✨ Fonctionnalités
