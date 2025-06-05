@@ -1,28 +1,39 @@
-🗺️ Observatoire Sismique Al Haouz
-
+🗺️ Al Haouz Seismic Observatory
 📝 Description
-Une plateforme interactive de surveillance et d'analyse du séisme du 8 septembre 2023 dans la province d'Al Haouz, Maroc. Ce projet combine la visualisation cartographique avancée avec l'analyse des données sismiques pour fournir une compréhension approfondie de l'impact du séisme.
-✨ Fonctionnalités
-🌍 Carte Interactive Al Haouz
 
-Visualisation des communes avec données démographiques
-Affichage 3D des bâtiments par commune
-Filtrage des bâtiments par surface
-Statistiques en temps réel
-Données démographiques et socio-économiques
+Al Haouz Seismic Observatory is an interactive platform for monitoring and analyzing the September 8, 2023 earthquake in the Al Haouz province, Morocco. The project combines advanced map visualization with seismic data analysis to provide a comprehensive understanding of the earthquake's impact.
 
-📊 Analyse du Séisme
+✨ Features
 
-Cartographie de l'épicentre
-Visualisation des intensités sismiques (MI)
-Carte d'accélération du sol (PGA)
-Statistiques détaillées sur l'impact
-Visualisations des dommages par région
+🌍 Interactive Al Haouz Map
+Visualization of communes with demographic data
 
-🏘️ Analyse des Dégâts
+3D display of buildings by commune
 
-Cartographie détaillée des zones touchées
-Classification des bâtiments par niveau de dommage
-Statistiques par zone
-Filtres interactifs
-Visualisation satellite
+Building filtering by surface area
+
+statistics
+
+Socio-economic and demographic insights
+
+📊 Earthquake Analysis
+Mapping of the epicenter
+
+Visualization of seismic intensity (Modified Mercalli Intensity – MMI)
+
+Peak Ground Acceleration (PGA) mapping
+
+Detailed impact statistics
+
+Damage visualizations by region
+
+🏘️ Damage Assessment
+Detailed mapping of affected zones
+
+Building classification by damage level
+
+Zone-based statistics
+
+Interactive filters
+
+Satellite imagery visualization
