@@ -46,7 +46,7 @@ export default function AnalyseDeDegat() {
   const [buildingStats, setBuildingStats] = useState(null);
   const [filterDamage, setFilterDamage] = useState('all');
   const [buildingsData, setBuildingsData] = useState(null);
-  const [showGuide, setShowGuide] = useState(true); // Ajouter avec les autres useState
+  const [showGuide, setShowGuide] = useState(true); 
 
   // Reset filter when zone changes
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function AnalyseDeDegat() {
 
   useEffect(() => {
     if (!map.current && mapRef.current) {
-      mapboxgl.accessToken = 'pk.eyJ1IjoibW9oc3NpbmVib3VoZGEiLCJhIjoiY20zdm13bGpzMHpxYzJsc2ZtZDNwMGVveSJ9.2otT87Si6Z7EB8P2t_rOIg';
+      mapboxgl.accessToken = 'pk.eyJ1IjoieWFzc2luZW91ZGFkZGEiLCJhIjoiY21iamNhaGluMGdoZzJrcXRlbnFsbzduciJ9.I4aFMRMF_hhDW4rP5XKqsQ';
       
       map.current = new mapboxgl.Map({
         container: mapRef.current,

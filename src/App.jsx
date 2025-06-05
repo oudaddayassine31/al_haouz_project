@@ -259,7 +259,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!map.current && mapRef.current) {
-      mapboxgl.accessToken = 'pk.eyJ1IjoibW9oc3NpbmVib3VoZGEiLCJhIjoiY20zdm13bGpzMHpxYzJsc2ZtZDNwMGVveSJ9.2otT87Si6Z7EB8P2t_rOIg';
+      mapboxgl.accessToken = 'pk.eyJ1IjoieWFzc2luZW91ZGFkZGEiLCJhIjoiY21iamNhaGluMGdoZzJrcXRlbnFsbzduciJ9.I4aFMRMF_hhDW4rP5XKqsQ';
       
       map.current = new mapboxgl.Map({
         container: mapRef.current,
@@ -790,8 +790,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               {[
                 { name: "OUDADDA Yassine", placeholder: "public/WhatsApp Image 2024-12-03 at 7.17.28 PM.jpeg" },
-                { name: "BOUHDA Mohssine", placeholder: "public/bouhda.jpeg" },
-                { name: "SALAH Aissam", placeholder: "public/aissam.jpeg" }
+
               ].map((member) => (
                 <div key={member.name} className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors">
                   <div className="flex-shrink-0">
@@ -1050,7 +1049,7 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex flex-col items-center gap-4">
           <p className="text-gray-500 text-sm font-medium">
-            Copyright © 2024 | OUDADDA-YASSINE SALAH-AISSAM BOUHDA-MOHSSINE | Web Mapping Project
+            Copyright © 2024 | OUDADDA-YASSINE  | Web Mapping Project
           </p>
         </div>
       </div>
