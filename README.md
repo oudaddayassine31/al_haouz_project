@@ -1,5 +1,4 @@
 🗺️ Al Haouz Seismic Observatory
-📝 Description
 
 Al Haouz Seismic Observatory is an interactive platform for monitoring and analyzing the September 8, 2023 earthquake in the Al Haouz province, Morocco. The project combines advanced map visualization with seismic data analysis to provide a comprehensive understanding of the earthquake's impact.
 
